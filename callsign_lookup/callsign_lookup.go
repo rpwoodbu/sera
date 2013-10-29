@@ -17,10 +17,10 @@ type Member struct {
 	Callsign string
 	LastName string
 	Name     string
-	//Street          string
-	//City            string
-	//State           string
-	//Zip             string
+	Street   string
+	City     string
+	State    string
+	Zip      string
 	//HomePhone       string
 	League          string
 	HomeRepeater    string
@@ -38,6 +38,7 @@ const (
 	NAME_HEADER             = "NAME"
 	STREET_HEADER           = "STREET"
 	CITY_HEADER             = "CITY"
+	STATE_HEADER            = "STATE"
 	ZIP_HEADER              = "ZIP"
 	HOME_PHONE_HEADER       = "HOMEPHONE"
 	LEAGUE_HEADER           = "LEAGUE"
@@ -56,6 +57,7 @@ var columnNames = map[string]bool{
 	NAME_HEADER:             false,
 	STREET_HEADER:           false,
 	CITY_HEADER:             false,
+	STATE_HEADER:            false,
 	ZIP_HEADER:              false,
 	HOME_PHONE_HEADER:       false,
 	LEAGUE_HEADER:           false,
@@ -85,10 +87,10 @@ const lookupPage = `
 <html>
 	<body>
 		<h3>{{.Callsign}}</h3>
-		<div>Name: {{.Name}}</div>
-		<div>League: {{.League}}</div>
+		<div>{{.Name}}</div>
+		<div>{{.Street}}</div>
+		<div>{{.City}}, {{.State}} {{.Zip}}</div>
 		<div>Joined: {{.DateJoined}}</div>
-		<div>Status: {{.Status}}</div>
 		<div>Expires: Q{{.QuarterExpiring}} {{.YearExpiring}}</div>
 	</body>
 </html>
@@ -234,9 +236,10 @@ func update(w http.ResponseWriter, r *http.Request) {
 		member.Callsign = strings.ToUpper(strings.TrimSpace(record[columns[CALL_HEADER]]))
 		member.LastName = strings.TrimSpace(record[columns[LAST_NAME_HEADER]])
 		member.Name = strings.TrimSpace(record[columns[NAME_HEADER]])
-		//member.Street = strings.TrimSpace(record[columns[STREET_HEADER]])
-		//member.City = strings.TrimSpace(record[columns[CITY_HEADER]])
-		//member.Zip = strings.TrimSpace(record[columns[ZIP_HEADER]])
+		member.Street = strings.TrimSpace(record[columns[STREET_HEADER]])
+		member.City = strings.TrimSpace(record[columns[CITY_HEADER]])
+		member.State = strings.TrimSpace(record[columns[STATE_HEADER]])
+		member.Zip = strings.TrimSpace(record[columns[ZIP_HEADER]])
 		//member.HomePhone = strings.TrimSpace(record[columns[HOME_PHONE_HEADER]])
 		member.League = strings.TrimSpace(record[columns[LEAGUE_HEADER]])
 		member.HomeRepeater = strings.TrimSpace(record[columns[HOME_REPEATER_HEADER]])
@@ -263,19 +266,12 @@ func update(w http.ResponseWriter, r *http.Request) {
 				// Do not add a duplicate again; move on.
 				continue
 			}
-			/*key = datastore.NewKey(c, "Member", member.Callsign, 0, nil)*/
 			added++
 			fmt.Fprintf(w, "<div>Adding %v</div>", member.Callsign)
 		} else {
 			updated++
 		}
-		/*
-			_, err = datastore.Put(c, key, &member)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		*/
+
 		output <- &member
 		processed[member.Callsign] = true
 		delete(existing, key)
@@ -303,7 +299,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		keys = append(keys, key)
-		fmt.Fprintf(w, "<div>Deleting database key %v</div>", key)
+		fmt.Fprintf(w, "<div>Deleting %v</div>", key.StringID())
 	}
 	err = datastore.DeleteMulti(c, keys)
 	if err != nil {
