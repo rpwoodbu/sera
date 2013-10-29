@@ -204,8 +204,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	columns := make(map[string]int) // Map of column names to record offsets.
-	for i := 0; i < len(header); i++ {
-		heading := header[i]
+	for i, heading := range header {
 		if _, ok := columnNames[heading]; ok {
 			columns[heading] = i
 		}
