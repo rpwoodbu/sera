@@ -210,7 +210,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	output := make(chan *Member)
-	result := make(chan error)
+	result := make(chan []error)
 	c.Debugf("start writers")
 	for i := 0; i < NUM_WRITERS; i++ {
 		go write(c, output, result)
@@ -284,14 +284,12 @@ func update(w http.ResponseWriter, r *http.Request) {
 	c.Debugf("closing output")
 	close(output)
 	c.Debugf("waiting for results")
-	for i := 0; i < NUM_WRITERS; {
-		err := <-result
-		if err != nil {
-			fmt.Fprintf(w, "<div>Error: %v</div>", err)
-		} else {
-			// Each goroutine will return exactly one nil error when it is complete.
-			// This waits for all of them to finish before proceeding.
-			i++
+	for i := 0; i < NUM_WRITERS; i++ {
+		errors := <-result
+		if len(errors) > 0 {
+			for _, err := range errors {
+				fmt.Fprintf(w, "<div>Error: %v</div>", err)
+			}
 		}
 	}
 
@@ -324,14 +322,16 @@ func update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func write(c appengine.Context, output chan *Member, result chan error) {
+func write(c appengine.Context, output chan *Member, result chan []error) {
+	var errors []error
+
 	for member := range output {
 		key := datastore.NewKey(c, "Member", member.Callsign, 0, nil)
 		_, err := datastore.Put(c, key, member)
 		if err != nil {
-			result <- err
+			errors = append(errors, err)
 		}
 	}
 
-	result <- nil
+	result <- errors
 }
