@@ -5,6 +5,7 @@ import (
 	"appengine/datastore"
 	"appengine/user"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -139,6 +140,17 @@ func lookup(w http.ResponseWriter, r *http.Request) {
 	err := datastore.Get(c, key, &member)
 	if err != nil {
 		fmt.Fprintf(w, lookupNotFoundPage)
+		return
+	}
+
+	format := strings.ToLower(r.FormValue("format"))
+	if format == "json" {
+		output, err := json.Marshal(member)
+		if err != nil {
+			fmt.Fprintf(w, lookupNotFoundPage)
+			return
+		}
+		w.Write(output)
 		return
 	}
 

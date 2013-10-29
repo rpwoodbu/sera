@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <title>SERA Callsign Lookup</title>
+    <script>
+      function lookup() {
+        var callsign = window.document.getElementById("callsign").value;
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            var member = JSON.parse(xmlhttp.responseText);
+            for (key in member) {
+              var element = window.document.getElementById(key);
+              if (element) {
+                element.innerText = member[key];
+              }
+            }
+          }
+        }
+        xmlhttp.open("GET", "/lookup?format=json&callsign="+callsign, true);
+        xmlhttp.send();
+      }
+    </script>
+  </head>
+  <body>
+    <form action="javascript:lookup();">
+      <div>Callsign: <input type="text" id="callsign" autofocus></input></div>
+      <div><input type="submit" value="Lookup"></div>
+    </form>
+    <div>
+      <table>
+        <tr>
+          <td>Name</td>
+          <td id="Name"></td>
+        </tr>
+        <tr>
+          <td>Address</td>
+          <td id="Street"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td id="City"></td>
+          <td id="State"></td>
+          <td id="Zip"></td>
+        </tr>
+        <tr>
+          <td>Member since</td>
+          <td id="DateJoined"</td>
+        </tr>
+        <tr>
+          <td>Expires</td>
+          <td id="YearExpiring"</td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
