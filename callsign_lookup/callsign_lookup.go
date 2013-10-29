@@ -135,22 +135,31 @@ func lookup(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
 	callsign := strings.ToUpper(r.FormValue("callsign"))
+	format := strings.ToLower(r.FormValue("format"))
+
 	key := datastore.NewKey(c, "Member", callsign, 0, nil)
 	var member Member
 	err := datastore.Get(c, key, &member)
 	if err != nil {
-		fmt.Fprintf(w, lookupNotFoundPage)
-		return
+		if format != "json" {
+			fmt.Fprintf(w, lookupNotFoundPage)
+			return
+		}
+		// Otherwise, continue and return an empty Member object.
 	}
 
-	format := strings.ToLower(r.FormValue("format"))
 	if format == "json" {
 		output, err := json.Marshal(member)
 		if err != nil {
 			fmt.Fprintf(w, lookupNotFoundPage)
 			return
 		}
-		w.Write(output)
+		jsonp := r.FormValue("jsonp")
+		if len(jsonp) > 0 {
+			fmt.Fprintf(w, "%s(%s);", jsonp, output)
+		} else {
+			w.Write(output)
+		}
 		return
 	}
 

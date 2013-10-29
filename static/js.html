@@ -4,20 +4,22 @@
     <script>
       function lookup() {
         var callsign = window.document.getElementById("callsign").value;
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            var member = JSON.parse(xmlhttp.responseText);
-            for (key in member) {
-              var element = window.document.getElementById(key);
-              if (element) {
-                element.innerText = member[key];
-              }
-            }
+        var script = window.document.createElement("script");
+        script.src = "/lookup?format=json&jsonp=update&callsign="+callsign;
+        var first = window.document.getElementsByTagName("script")[0];
+        first.parentNode.insertBefore(script, first);
+      }
+
+      function update(member) {
+        if (member["Name"] == "") {
+          member["Name"] = "Not found";
+        }
+        for (key in member) {
+          var element = window.document.getElementById(key);
+          if (element) {
+            element.innerText = member[key];
           }
         }
-        xmlhttp.open("GET", "/lookup?format=json&callsign="+callsign, true);
-        xmlhttp.send();
       }
     </script>
   </head>
