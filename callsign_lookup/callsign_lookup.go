@@ -218,6 +218,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 
 	csvReader := csv.NewReader(csvRaw)
 	csvReader.TrailingComma = true
+	csvReader.FieldsPerRecord = -1
 
 	header, err := csvReader.Read()
 	if err != nil {
