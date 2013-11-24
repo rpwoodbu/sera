@@ -257,6 +257,10 @@ func update(w http.ResponseWriter, r *http.Request) {
 		member.Callsign = strings.ToUpper(strings.TrimSpace(record[columns[CALL_HEADER]]))
 		member.LastName = strings.TrimSpace(record[columns[LAST_NAME_HEADER]])
 		member.Name = strings.TrimSpace(record[columns[NAME_HEADER]])
+		if len(strings.Fields(member.Name)) < 2 {
+			fmt.Fprintf(w, "<div>%v's name '%s' is not a full name (less than 2 words).</div>",
+				member.Callsign, member.Name)
+		}
 		member.Street = strings.TrimSpace(record[columns[STREET_HEADER]])
 		member.City = strings.TrimSpace(record[columns[CITY_HEADER]])
 		member.State = strings.TrimSpace(record[columns[STATE_HEADER]])
